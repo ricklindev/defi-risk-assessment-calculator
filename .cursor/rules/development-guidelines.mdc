@@ -1,0 +1,55 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 開發準則
+
+本文件概述了參與 DeFi 協議風險評估計算器專案開發時建議遵循的準則。
+
+## 編碼風格與格式
+
+*   **程式碼格式化**: 請使用專案中配置的 Prettier 來自動格式化程式碼。確保在提交程式碼前運行格式化工具。
+*   **命名規範**:
+    *   組件：使用 PascalCase (例如 `RiskCalculatorForm`)。
+    *   變數和函數：使用 camelCase (例如 `averageTvl`, `handleProtocolSelect`)。
+    *   常數：使用 SCREAMING_SNAKE_CASE (例如 `DEFILLAMA_API_BASE`)。
+    *   類型和介面：使用 PascalCase (例如 `FormInputs`, `ProtocolListItem`)。
+*   **TypeScript**: 盡可能使用 TypeScript 的強類型特性，明確定義變數、函數參數和返回值的類型。避免使用 `any`，除非絕對必要且有充分理由。
+*   **註解**: 對於複雜的邏輯、演算法或不直觀的程式碼，請添加清晰的註解。避免對顯而易見的程式碼進行過度註解。
+*   **模組化**: 將相關的功能組織到獨立的模組或檔案中 (例如 `services` 用於 API 呼叫，`lib` 用於共用邏輯，`components` 用於 UI)。
+
+## Git 工作流程
+
+*   **分支策略**: 建議使用功能分支 (feature branches)。從 `main` 或 `develop` 分支出新的分支來開發新功能或修復錯誤。
+    *   分支命名：建議使用 `feature/short-description` 或 `fix/short-description` 的格式。
+*   **Commit 訊息**: 請遵循 Conventional Commits 規範，格式為 `<type>: <subject>`。
+    *   常見的 `type` 包括: `feat` (新功能), `fix` (錯誤修復), `docs` (文件變更), `style` (格式變更), `refactor` (程式碼重構), `test` (測試相關), `chore` (建構流程、輔助工具變更)。
+    *   範例: `feat: add protocol search functionality`, `fix: handle NaN in number inputs`
+*   **Pull Requests (PRs)**:
+    *   在將分支合併回主線之前，請創建 Pull Request。
+    *   PR 描述應清晰說明變更的目的和內容。
+    *   如果可能，進行程式碼審查 (Code Review)。
+
+## 狀態管理
+
+*   目前主要狀態集中在 `[src/App.tsx](mdc:src/App.tsx)`。對於簡單的應用，這是可行的。
+*   如果應用程式變得更複雜，可以考慮引入更專業的狀態管理庫（例如 Zustand, Redux Toolkit）。
+*   避免在底層組件中直接修改透過 props 傳遞的狀態。應透過父組件傳遞的回呼函數來更新狀態。
+
+## API 互動
+
+*   所有與外部 API (例如 DefiLlama) 的互動應封裝在 `[src/services](mdc:src/services)` 目錄下的檔案中。
+*   處理 API 錯誤：確保在使用 `fetch` 或其他 API 呼叫時進行適當的錯誤處理 (例如 `try...catch`)，並向使用者提供有意義的反饋。
+*   **安全性**: 避免在前端程式碼中硬編碼 API 金鑰或敏感資訊。考慮使用環境變數或後端代理。
+    *   **注意**: `[src/services/defillama.ts](mdc:src/services/defillama.ts)` 目前包含硬編碼的 Bearer Token (`SEARCH_BEARER_TOKEN`)，這在生產環境中是不安全的，應予以修正。
+
+## 測試
+
+*   (建議) 為關鍵的業務邏輯 (例如計分函數 `[src/lib/scoring.ts](mdc:src/lib/scoring.ts)`, TVL 計算 `[src/services/defillama.ts](mdc:src/services/defillama.ts)`) 添加單元測試。
+*   (建議) 考慮為主要的使用者流程添加整合測試或端對端測試。
+
+## 文件
+
+*   保持 README 文件 (`[README.md](mdc:README.md)`) 的更新，包含專案設置、運行和部署的說明。
+*   使用 Cursor Rules (`.cursor/rules/`) 來記錄重要的架構決策、組件概觀和複雜邏輯，方便團隊成員快速理解專案。

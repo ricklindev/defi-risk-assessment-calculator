@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 專案概觀：DeFi 協議風險評估計算器
+
+本文件提供 DeFi 協議風險評估計算器專案的概觀。
+
+## 專案目標
+
+開發一個網頁應用程式，允許使用者根據一系列可配置的指標（如運行時間、TVL、安全審計、安全事件歷史、漏洞賞金計畫等）來評估 DeFi 協議的相對風險。
+
+## 主要技術棧
+
+*   **前端框架**: React (使用 Vite 作為建構工具)
+*   **UI 函式庫**: shadcn/ui (基於 Radix UI 和 Tailwind CSS)
+*   **語言**: TypeScript
+*   **狀態管理**: 主要透過 React 的內建狀態 (`useState`, `useCallback`) 和 props 傳遞在 `[src/App.tsx](mdc:src/App.tsx)` 中進行管理。
+*   **資料獲取**: 使用 DefiLlama API (`https://api.llama.fi`, `https://search.defillama.com`) 獲取協議列表、搜尋協議以及獲取協議的歷史 TVL 數據。
+*   **圖示**: Lucide React
+*   **提示/通知**: Sonner
+
+## 關鍵組件與檔案
+
+*   `[src/App.tsx](mdc:src/App.tsx)`: 應用程式的主要進入點和狀態管理中心。
+    *   管理表單輸入 (`formInputs`)、TVL 資訊 (`tvlInfo`)、搜尋狀態 (`searchQuery`, `searchResults`, `isLoadingSearch`)、選擇的協議 (`selectedProtocol`)、計算結果 (`results`) 以及錯誤和載入狀態。
+    *   處理協議搜尋 (使用 debounce)、協議選擇、TVL 數據獲取、分數計算和結果顯示。
+*   `[src/components/RiskCalculatorForm.tsx](mdc:src/components/RiskCalculatorForm.tsx)`: 負責渲染使用者輸入指標的表單介面。
+    *   包含用於選擇協議的可搜尋下拉選單 (Combobox)。
+    *   接收來自 `App.tsx` 的狀態和回呼函數，並將使用者輸入傳回。
+    *   詳細說明請參考 `[.cursor/rules/risk-calculator-form-overview.mdc](mdc:.cursor/rules/risk-calculator-form-overview.mdc)`。
+*   `[src/components/ScoreDisplay.tsx](mdc:src/components/ScoreDisplay.tsx)`: (假設存在，用於顯示計算結果) 負責展示計算出的各項分數、總分和風險等級。
+*   `[src/services/defillama.ts](mdc:src/services/defillama.ts)`: 包含與 DefiLlama API 互動的函數。
+    *   `searchProtocols`: 搜尋協議。
+    *   `fetchProtocolChart`: 獲取協議的歷史 TVL 圖表數據。
+    *   `calculateTvlMetrics`: 根據歷史 TVL 數據計算平均 TVL 和穩定性。詳細說明請參考 `[.cursor/rules/tvl-calculation.mdc](mdc:.cursor/rules/tvl-calculation.mdc)`。
+*   `[src/lib/scoring.ts](mdc:src/lib/scoring.ts)`: 包含根據輸入指標計算各項分數（運行時間、TVL、審計、事件、賞金）和最終總分的邏輯。
+*   `[src/lib/utils.ts](mdc:src/lib/utils.ts)`: 由 shadcn/ui 自動生成，主要包含 `cn` 函數用於合併 CSS class。
+*   `[src/config/weights.ts](mdc:src/config/weights.ts)`: (建議建立) 用於存放各風險指標權重的配置文件，方便調整。
+
+## 工作流程
+
+1.  使用者在 `RiskCalculatorForm` 中輸入協議名稱進行搜尋。
+2.  `App.tsx` 透過 `searchProtocols` 呼叫 DefiLlama API 進行搜尋，並將結果顯示在下拉選單中。
+3.  使用者從下拉選單中選擇一個協議。
+4.  `App.tsx` 觸發 `handleProtocolSelect`，呼叫 `fetchProtocolChart` 獲取 TVL 數據。
+5.  獲取數據後，呼叫 `calculateTvlMetrics` 計算平均 TVL 和穩定性，並更新 `tvlInfo` 狀態。
+6.  `RiskCalculatorForm` 顯示載入的 TVL 指標。
+7.  使用者填寫表單中的其他指標。
+8.  使用者點擊「計算評分」按鈕。
+9.  `App.tsx` 觸發 `handleCalculateScores`，從 `scoring.ts` 導入計分函數，計算各項分數和總分。
+10. 計算結果更新到 `results` 狀態。
+11. `ScoreDisplay` 組件顯示最終的風險評估結果。

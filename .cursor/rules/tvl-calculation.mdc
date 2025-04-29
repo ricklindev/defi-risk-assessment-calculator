@@ -1,0 +1,43 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# TVL 指標計算邏輯
+
+本文件說明如何在 `[src/services/defillama.ts](mdc:src/services/defillama.ts)` 中計算協議的**平均 TVL (近 6 個月)** 和 **TVL 穩定性**。
+
+計算邏輯主要由 `calculateTvlMetrics` 函數實現。
+
+## 計算流程
+
+1.  **獲取歷史數據**:
+    *   首先，透過呼叫 `fetchProtocolChart(protocolSlug)` 函數從 DefiLlama 的 `/protocol/{slug}` API 端點獲取指定協議的歷史 TVL 數據。
+    *   此端點返回一個包含時間戳 (`date`) 和對應 TVL (`totalLiquidityUSD`) 的物件陣列 (`HistoricalTvlPoint[]`)。
+
+2.  **篩選相關數據**:
+    *   `calculateTvlMetrics` 函數接收 `fetchProtocolChart` 返回的歷史數據陣列 (`chartData`)。
+    *   計算出 **6 個月前** 的 Unix 時間戳。
+    *   使用 `.filter()` 方法篩選出 `chartData` 中時間戳大於或等於 6 個月前時間戳的數據點。
+    *   再使用 `.map()` 提取每個數據點的 `totalLiquidityUSD` 值。
+    *   最後再次使用 `.filter()` 過濾掉 TVL 值為 0 或負數的數據點 (`tvl > 0`)，得到 `relevantData` 陣列。
+
+3.  **處理無數據情況**:
+    *   如果 `relevantData` 陣列為空（表示過去 6 個月沒有有效的 TVL 數據），則直接返回 `{ averageTvl: 0, isStable: false }`。
+
+4.  **計算平均 TVL (`averageTvl`)**:
+    *   使用 `.reduce()` 計算 `relevantData` 陣列中所有 TVL 值的總和 (`sumTvl`)。
+    *   將 `sumTvl` 除以 `relevantData` 的長度（即有效數據點的數量），得到平均 TVL。
+
+5.  **計算穩定性 (`isStable`)**:
+    *   找出 `relevantData` 中的最大 TVL (`maxTvl`) 和最小 TVL (`minTvl`)。
+    *   計算**波動率比率 (`volatilityRatio`)**: `(maxTvl - minTvl) / averageTvl`。（如果 `averageTvl` 為 0，則比率為 0）。
+    *   **穩定性判斷**: 如果 `volatilityRatio` **小於 0.6** (即波動範圍小於平均值的 60%)，則認為 TVL 是穩定的 (`isStable = true`)，否則為不穩定 (`isStable = false`)。
+        *   **注意**: UI 上的標籤可能是 `波動 < 20%` 或 `波動 < 30%`，但實際計算邏輯中使用的閾值是 **0.6 (60%)**。開發時請以程式碼中的閾值為準。
+
+6.  **返回結果**:
+    *   函數最終返回一個包含計算結果的物件：`{ averageTvl, isStable }`。
+
+## 觸發時機
+
+此計算在 `[src/App.tsx](mdc:src/App.tsx)` 的 `handleProtocolSelect` 回呼函數中被觸發：當使用者透過 `RiskCalculatorForm` 選擇了一個協議後，`App.tsx` 會先呼叫 `fetchProtocolChart` 獲取數據，然後將數據傳遞給 `calculateTvlMetrics` 進行計算，最後將結果更新到 `tvlInfo` 狀態中。
