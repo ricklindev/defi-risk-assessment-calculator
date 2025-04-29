@@ -4,10 +4,16 @@ export {}; // Placeholder to make it a module
 
 const DEFILLAMA_API_BASE = "https://api.llama.fi";
 const DEFILLAMA_SEARCH_API = "https://search.defillama.com/multi-search";
-// WARNING: Hardcoding API keys/tokens in frontend code is insecure.
-// Consider using a backend proxy or environment variables for production.
-const SEARCH_BEARER_TOKEN =
-  "0050e4b518781e324a259db278687ec0031b9601c1c6a87aa7174c13ecdbd057";
+
+// Read token from environment variable (Vite specific)
+const SEARCH_BEARER_TOKEN = import.meta.env.VITE_DEFILLAMA_SEARCH_TOKEN;
+
+if (!SEARCH_BEARER_TOKEN) {
+  console.warn(
+    "DefiLlama search token (VITE_DEFILLAMA_SEARCH_TOKEN) is not defined in .env file."
+  );
+  // Optionally, throw an error or provide a default behavior
+}
 
 // --- Type Definitions ---
 
@@ -48,6 +54,12 @@ export interface HistoricalTvlPoint {
   totalLiquidityUSD: number;
 }
 
+// Define the structure for the /protocol/{slug} API response
+interface ProtocolApiResponse {
+  tvl?: HistoricalTvlPoint[];
+  // Add other properties from the response if needed
+}
+
 // --- API Fetching Functions ---
 
 /**
@@ -57,6 +69,12 @@ export interface HistoricalTvlPoint {
 export async function searchProtocols(
   query: string
 ): Promise<ProtocolListItem[]> {
+  // Ensure the token is available before making the request
+  if (!SEARCH_BEARER_TOKEN) {
+    console.error("Search API token is missing. Cannot perform search.");
+    return []; // Return empty array or throw error
+  }
+
   if (!query) {
     return []; // Return empty if query is empty
   }
@@ -136,9 +154,9 @@ export async function fetchProtocolChart(
       }
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
-    const data = await response.json();
+    const data: ProtocolApiResponse = await response.json();
     console.log(`Raw data from /protocol/${protocolSlug} endpoint:`, data);
-    const historicalTvl = (data as any)?.tvl;
+    const historicalTvl = data.tvl;
     if (!Array.isArray(historicalTvl)) {
       console.error(
         `Could not find 'tvl' array in response from /protocol/${protocolSlug}:`,
