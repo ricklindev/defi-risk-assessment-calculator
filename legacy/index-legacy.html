@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeFi 協議風險評分計算器</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>DeFi 協議風險評分計算器</h1>
+
+      <form id="risk-form">
+        <div class="form-section">
+          <h2>核心評分指標</h2>
+
+          <!-- 1. 運行時間 (權重: 25%) -->
+          <fieldset>
+            <legend>1. 運行時間 (權重: 25%)</legend>
+            <div class="form-group inline-group">
+              <label>運行時長:</label>
+              <input
+                type="number"
+                id="runtime-years"
+                name="runtime-years"
+                min="0"
+                step="1"
+                placeholder="年"
+                style="width: 80px; margin-right: 5px"
+                value="0"
+              />
+              <input
+                type="number"
+                id="runtime-months"
+                name="runtime-months"
+                min="0"
+                max="11"
+                step="1"
+                placeholder="月"
+                style="width: 80px"
+                value="0"
+              />
+            </div>
+            <div class="form-group checkbox-group">
+              <input
+                type="checkbox"
+                id="survived-cycle"
+                name="survived-cycle"
+              />
+              <label for="survived-cycle">經歷過 2020-2025 牛熊週期</label>
+            </div>
+          </fieldset>
+
+          <!-- 2. TVL 評分 (權重: 25%) -->
+          <fieldset>
+            <legend>2. TVL 評分 (權重: 25%)</legend>
+            <div class="form-group">
+              <label for="tvl-value">TVL 數值:</label>
+              <input
+                type="number"
+                id="tvl-value"
+                name="tvl-value"
+                min="0"
+                step="any"
+                required
+              />
+              <select id="tvl-unit" name="tvl-unit">
+                <option value="M">百萬 (M)</option>
+                <option value="B">十億 (B)</option>
+              </select>
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="tvl-stable" name="tvl-stable" />
+              <label for="tvl-stable">穩定性 (過去 6 個月波動 < 20%)</label>
+            </div>
+          </fieldset>
+
+          <!-- 3. 安全審計 (權重: 20%) -->
+          <fieldset>
+            <legend>3. 安全審計 (權重: 20%)</legend>
+            <div class="form-group">
+              <label>審計次數:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-0"
+                    name="audit-count"
+                    value="0"
+                    checked
+                    required
+                  />
+                  <label for="audit-count-0">無審計</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-1"
+                    name="audit-count"
+                    value="1"
+                  />
+                  <label for="audit-count-1">1 次審計</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-2"
+                    name="audit-count"
+                    value="2"
+                  />
+                  <label for="audit-count-2">2 次審計</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-3"
+                    name="audit-count"
+                    value="3"
+                  />
+                  <label for="audit-count-3">3 次審計</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-4"
+                    name="audit-count"
+                    value="4"
+                  />
+                  <label for="audit-count-4">4 次審計</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="audit-count-5"
+                    name="audit-count"
+                    value="5"
+                  />
+                  <label for="audit-count-5">5 次及以上審計</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="audit-months-ago">最近一次審計時間:</label>
+              <select id="audit-months-ago" name="audit-months-ago" required>
+                <option value="0">過去 12 個月內</option>
+                <option value="12">過去 12-24 個月</option>
+                <option value="24">過去 24-36 個月</option>
+                <option value="36">36 個月以上或未知</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <!-- 5. 安全事件評分 (權重: 20%) -->
+          <fieldset>
+            <legend>5. 安全事件評分 (權重: 20%)</legend>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="has-incident" name="has-incident" />
+              <label for="has-incident">是否發生過安全事件？</label>
+            </div>
+
+            <div id="incident-details" class="hidden">
+              <div class="form-group inline-group">
+                <label for="loss-amount">損失金額:</label>
+                <input
+                  type="number"
+                  id="loss-amount"
+                  name="loss-amount"
+                  min="0"
+                  step="any"
+                  style="flex-grow: 1; margin-right: 5px"
+                />
+                <select
+                  id="loss-amount-unit"
+                  name="loss-amount-unit"
+                  style="width: auto"
+                >
+                  <option value="raw">無單位</option>
+                  <option value="M">百萬 (M)</option>
+                  <option value="B">十億 (B)</option>
+                </select>
+              </div>
+              <div class="form-group inline-group">
+                <label for="tvl-before-incident">事發前 TVL:</label>
+                <input
+                  type="number"
+                  id="tvl-before-incident"
+                  name="tvl-before-incident"
+                  min="0"
+                  step="any"
+                  style="flex-grow: 1; margin-right: 5px"
+                />
+                <select
+                  id="tvl-before-incident-unit"
+                  name="tvl-before-incident-unit"
+                  style="width: auto"
+                >
+                  <option value="raw">無單位</option>
+                  <option value="M">百萬 (M)</option>
+                  <option value="B">十億 (B)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="months-ago">事件發生時間:</label>
+                <select id="months-ago" name="months-ago">
+                  <option value="0">過去 12 個月內</option>
+                  <option value="12">過去 12-24 個月</option>
+                  <option value="24">過去 24-36 個月</option>
+                  <option value="36">36 個月以上</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>TVL 損失比例:</label>
+                <span id="loss-percentage">--%</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- 6. 漏洞賞金計畫 (權重: 10%) -->
+          <fieldset>
+            <legend>6. 漏洞賞金計畫 (權重: 10%)</legend>
+            <div class="form-group">
+              <label>最高賞金金額:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-0"
+                    name="bounty-tier"
+                    value="0"
+                    checked
+                    required
+                  />
+                  <label for="bounty-tier-0">無賞金計畫 / < $25 K</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-1"
+                    name="bounty-tier"
+                    value="1"
+                  />
+                  <label for="bounty-tier-1">$25 K – $100 K</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-2"
+                    name="bounty-tier"
+                    value="2"
+                  />
+                  <label for="bounty-tier-2">$100 K – $250 K</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-3"
+                    name="bounty-tier"
+                    value="3"
+                  />
+                  <label for="bounty-tier-3">$250 K – $500 K</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-4"
+                    name="bounty-tier"
+                    value="4"
+                  />
+                  <label for="bounty-tier-4">$500 K – $1 M</label>
+                </div>
+                <div class="radio-option">
+                  <input
+                    type="radio"
+                    id="bounty-tier-5"
+                    name="bounty-tier"
+                    value="5"
+                  />
+                  <label for="bounty-tier-5">> $1 M</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="bounty-months-ago">最近一次更新時間:</label>
+              <select id="bounty-months-ago" name="bounty-months-ago" required>
+                <option value="0">過去 12 個月內</option>
+                <option value="12">過去 12-24 個月</option>
+                <option value="24">過去 24-36 個月</option>
+                <option value="36">36 個月以上或未知</option>
+              </select>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="button-group">
+          <button type="submit">計算評分</button>
+          <button type="reset" id="reset-button">重設</button>
+        </div>
+      </form>
+
+      <div id="results" class="hidden">
+        <h2>評分結果</h2>
+        <p>1. 運行時間得分 (25%): <span id="runtime-score-result">--</span></p>
+        <p>2. TVL 得分 (25%): <span id="tvl-score-result">--</span></p>
+        <p>3. 安全審計得分 (20%): <span id="audit-score-result">--</span></p>
+        <p>5. 安全事件得分 (20%): <span id="incident-score-result">--</span></p>
+        <p>
+          6. 漏洞賞金計畫得分 (10%): <span id="bounty-score-result">--</span>
+        </p>
+        <h3>總風險評分: <span id="total-score-result">--</span></h3>
+        <h3>風險等級: <span id="risk-level-result">--</span></h3>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
