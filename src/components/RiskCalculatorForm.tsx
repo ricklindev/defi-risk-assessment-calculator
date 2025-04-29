@@ -38,9 +38,7 @@ import { cn } from "@/lib/utils"; // Import cn utility
 
 // Match the props passed from App.tsx
 interface FormInputs {
-  runtimeYears: number;
-  runtimeMonths: number;
-  survivedCycle: boolean;
+  runtimeDuration: string;
   auditCount: string;
   auditMonthsAgo: string;
   hasIncident: boolean;
@@ -290,49 +288,24 @@ function RiskCalculatorForm({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label>運行時長</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="number"
-                      placeholder="年"
-                      min="0"
-                      value={
-                        isNaN(inputs.runtimeYears) ? "" : inputs.runtimeYears
-                      }
-                      onChange={(e) =>
-                        handleNumberChange("runtimeYears", e.target.value)
-                      }
-                      className="w-20"
-                    />
-                    <span className="text-muted-foreground">年</span>
-                    <Input
-                      type="number"
-                      placeholder="月"
-                      min="0"
-                      max="11"
-                      value={
-                        isNaN(inputs.runtimeMonths) ? "" : inputs.runtimeMonths
-                      }
-                      onChange={(e) =>
-                        handleNumberChange("runtimeMonths", e.target.value)
-                      }
-                      className="w-20"
-                    />
-                    <span className="text-muted-foreground">月</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 pt-6">
-                  {" "}
-                  {/* Adjust alignment */}
-                  <Checkbox
-                    id="survived-cycle"
-                    checked={inputs.survivedCycle}
-                    onCheckedChange={(checked) =>
-                      handleCheckboxChange("survivedCycle", !!checked)
+                  <Select
+                    value={inputs.runtimeDuration}
+                    onValueChange={(value) =>
+                      onInputChange("runtimeDuration", value)
                     }
-                  />
-                  <Label htmlFor="survived-cycle" className="font-normal">
-                    經歷過 2020-2025 牛熊週期
-                  </Label>
+                  >
+                    <SelectTrigger id="runtime-duration">
+                      <SelectValue placeholder="選擇運行時長..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">&lt; 1 年</SelectItem>
+                      <SelectItem value="12">&gt; 1 年</SelectItem>
+                      <SelectItem value="24">&gt; 2 年</SelectItem>
+                      <SelectItem value="36">&gt; 3 年</SelectItem>
+                      <SelectItem value="48">&gt; 4 年</SelectItem>
+                      <SelectItem value="60">&gt; 5 年</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>

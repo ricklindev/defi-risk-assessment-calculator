@@ -14,9 +14,7 @@ import {
 
 // Define types for form inputs and results
 interface FormInputs {
-  runtimeYears: number;
-  runtimeMonths: number;
-  survivedCycle: boolean;
+  runtimeDuration: string;
   auditCount: string; // Value from radio
   auditMonthsAgo: string; // Value from select
   hasIncident: boolean;
@@ -52,9 +50,7 @@ function App() {
 
   const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null);
   const [formInputs, setFormInputs] = useState<FormInputs>({
-    runtimeYears: 0,
-    runtimeMonths: 0,
-    survivedCycle: false,
+    runtimeDuration: "0",
     auditCount: "0",
     auditMonthsAgo: "0",
     hasIncident: false,
@@ -193,11 +189,7 @@ function App() {
         calculateBugBountyScore,
       } = await import("./lib/scoring");
 
-      const runtimeScore = calculateRuntimeScore(
-        formInputs.runtimeYears,
-        formInputs.runtimeMonths,
-        formInputs.survivedCycle
-      );
+      const runtimeScore = calculateRuntimeScore(formInputs.runtimeDuration);
       const tvlScore = calculateTvlScore(tvlInfo.averageTvl, tvlInfo.isStable);
       const auditScore = calculateAuditScore(
         formInputs.auditCount,

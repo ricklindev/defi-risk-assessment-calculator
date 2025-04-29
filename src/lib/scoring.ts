@@ -18,20 +18,29 @@ function applyUnit(value: number, unit: string): number {
 }
 
 export function calculateRuntimeScore(
-  years: number,
-  months: number,
-  survivedCycle: boolean
+  // years: number, // Removed
+  // months: number, // Removed
+  runtimeDuration: string // New parameter: "12", "24", "36", "48", "60", or other for < 12
+  // survivedCycle: boolean // Removed parameter
 ): number {
-  const totalMonths = years * 12 + months;
+  // const totalMonths = years * 12 + months; // Removed old calculation
   let score = 0;
+  const duration = parseInt(runtimeDuration, 10);
 
-  if (totalMonths > 36) score = 45;
-  else if (totalMonths > 24) score = 30;
-  else if (totalMonths > 12) score = 15;
+  // Calculate score based on duration selection
+  if (duration >= 60) score = 100;
+  else if (duration >= 48) score = 80;
+  else if (duration >= 36) score = 60;
+  else if (duration >= 24) score = 40;
+  else if (duration >= 12) score = 20;
+  // else score remains 0 for < 12 months
 
-  if (survivedCycle) score += 40;
+  // Keep survivedCycle bonus, adjust if needed
+  // if (survivedCycle) { // Removed survivedCycle bonus logic
+  //   score = Math.min(score + 40, 100); // Add bonus, but cap total at 100
+  // }
 
-  return Math.min(score, 100);
+  return score; // Return score directly, no extra Math.min needed if bonus caps
 }
 
 // Note: This function will be updated later to accept calculated average TVL and stability
