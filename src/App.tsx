@@ -232,7 +232,7 @@ function App() {
     <div className="container mx-auto p-4 max-w-3xl">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>DeFi 協議風險評分計算器</CardTitle>
+          <CardTitle>DeFi 協議風險評分計算器 v2.4</CardTitle>
         </CardHeader>
       </Card>
 
