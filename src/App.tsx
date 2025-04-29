@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import RiskCalculatorForm from "./components/RiskCalculatorForm";
 import ResultsDisplay from "./components/ResultsDisplay";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Assuming shadcn setup
