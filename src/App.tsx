@@ -31,7 +31,6 @@ interface ScoreResults {
   runtimeScore: number;
   tvlScore: number;
   auditScore: number;
-  incidentScore: number;
   bountyScore: number;
   totalScore: number;
   riskLevel: RiskLevel | null;
@@ -185,7 +184,6 @@ function App() {
         calculateRuntimeScore,
         calculateTvlScore,
         calculateAuditScore,
-        calculateIncidentScore,
         calculateBugBountyScore,
       } = await import("./lib/scoring");
 
@@ -194,14 +192,6 @@ function App() {
       const auditScore = calculateAuditScore(
         formInputs.auditCount,
         formInputs.auditMonthsAgo
-      );
-      const incidentScore = calculateIncidentScore(
-        formInputs.hasIncident,
-        formInputs.lossAmount,
-        formInputs.lossAmountUnit,
-        formInputs.tvlBeforeIncident,
-        formInputs.tvlBeforeIncidentUnit,
-        formInputs.incidentMonthsAgo
       );
       const bountyScore = calculateBugBountyScore(
         formInputs.bountyTier,
@@ -212,7 +202,6 @@ function App() {
         runtimeScore,
         tvlScore,
         auditScore,
-        incidentScore,
         bountyScore,
       };
       const totalScore = calculateTotalScore(calculatedScores);
@@ -232,7 +221,7 @@ function App() {
     <div className="container mx-auto p-4 max-w-3xl">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>DeFi 協議風險評分計算器 v2.4</CardTitle>
+          <CardTitle>DeFi 協議風險評分計算器 v2.5</CardTitle>
         </CardHeader>
       </Card>
 

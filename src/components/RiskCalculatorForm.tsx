@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -41,12 +40,6 @@ interface FormInputs {
   runtimeDuration: string;
   auditCount: string;
   auditMonthsAgo: string;
-  hasIncident: boolean;
-  lossAmount: number;
-  lossAmountUnit: string;
-  tvlBeforeIncident: number;
-  tvlBeforeIncidentUnit: string;
-  incidentMonthsAgo: string;
   bountyTier: string;
   bountyMonthsAgo: string;
 }
@@ -56,13 +49,7 @@ interface TvlInfo {
   isStable: boolean | null;
 }
 
-// Updated Props for search functionality
 interface RiskCalculatorFormProps {
-  // Removed old protocol props
-  // protocols: ProtocolListItem[];
-  // isLoadingProtocols: boolean;
-  // ensureProtocolsLoaded: () => Promise<void>;
-
   // Added search props
   searchQuery: string;
   searchResults: ProtocolListItem[];
@@ -97,11 +84,6 @@ function RiskCalculatorForm({
   searchResults,
   isLoadingSearch,
   onSearchChange,
-  // Remove old props
-  // protocols,
-  // isLoadingProtocols,
-  // ensureProtocolsLoaded,
-  // Destructure existing props
   inputs,
   tvlInfo,
   selectedProtocol,
@@ -110,43 +92,8 @@ function RiskCalculatorForm({
   onProtocolSelect,
   onSubmit,
 }: RiskCalculatorFormProps) {
-  // Local state for incident details visibility (can also be derived from inputs.hasIncident)
-  // const [showIncidentDetails, setShowIncidentDetails] = useState(inputs.hasIncident);
-
   // State for Combobox
   const [comboboxOpen, setComboboxOpen] = useState(false);
-
-  // Handler for input fields
-  const handleNumberChange = (field: keyof FormInputs, value: string) => {
-    const numericValue = parseFloat(value);
-    onInputChange(field, isNaN(numericValue) ? NaN : numericValue);
-  };
-
-  const handleCheckboxChange = (field: keyof FormInputs, checked: boolean) => {
-    onInputChange(field, checked);
-    // if (field === 'hasIncident') {
-    //   setShowIncidentDetails(checked);
-    // }
-  };
-
-  // Calculate loss percentage for display (optional)
-  const lossPercentage = (() => {
-    if (!inputs.hasIncident || inputs.tvlBeforeIncident <= 0) {
-      return "--%";
-    }
-    const applyDisplayUnit = (value: number, unit: string) => {
-      if (unit === "M") return value * 1_000_000;
-      if (unit === "B") return value * 1_000_000_000;
-      return value;
-    };
-    const loss = applyDisplayUnit(inputs.lossAmount, inputs.lossAmountUnit);
-    const tvlBefore = applyDisplayUnit(
-      inputs.tvlBeforeIncident,
-      inputs.tvlBeforeIncidentUnit
-    );
-    const percentage = (loss / tvlBefore) * 100;
-    return isNaN(percentage) ? "計算錯誤" : `${percentage.toFixed(2)}%`;
-  })();
 
   // Handle opening the combobox and trigger loading if needed
   const handleComboboxOpenChange = (open: boolean) => {
@@ -284,7 +231,7 @@ function RiskCalculatorForm({
 
             {/* --- Runtime (Weight: 25%) --- */}
             <div className="space-y-3">
-              <h3 className="font-semibold">1. 運行時間 (權重: 25%)</h3>
+              <h3 className="font-semibold">1. 運行時間 (權重: 30%)</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label>運行時長</Label>
@@ -314,7 +261,7 @@ function RiskCalculatorForm({
 
             {/* --- TVL (Weight: 25%) --- */}
             <div className="space-y-3">
-              <h3 className="font-semibold">2. TVL 評分 (權重: 25%)</h3>
+              <h3 className="font-semibold">2. TVL 評分 (權重: 30%)</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label>平均 TVL (近 6 個月)</Label>
@@ -356,7 +303,7 @@ function RiskCalculatorForm({
 
             {/* --- Audit (Weight: 20%) --- */}
             <div className="space-y-3">
-              <h3 className="font-semibold">3. 安全審計 (權重: 20%)</h3>
+              <h3 className="font-semibold">3. 安全審計 (權重: 25%)</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>審計次數</Label>
@@ -429,138 +376,9 @@ function RiskCalculatorForm({
 
             <Separator />
 
-            {/* --- Incident (Weight: 20%) --- */}
-            <div className="space-y-3">
-              <h3 className="font-semibold">4. 安全事件 (權重: 20%)</h3>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="has-incident"
-                  checked={inputs.hasIncident}
-                  onCheckedChange={(checked) =>
-                    handleCheckboxChange("hasIncident", !!checked)
-                  }
-                />
-                <Label htmlFor="has-incident" className="font-normal">
-                  是否發生過安全事件？
-                </Label>
-              </div>
-
-              {inputs.hasIncident && (
-                <Card className="bg-muted/50 p-4 mt-2">
-                  <CardContent className="space-y-4 p-0">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="space-y-1">
-                        <Label htmlFor="loss-amount">損失金額</Label>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            id="loss-amount"
-                            type="number"
-                            min="0"
-                            placeholder="金額"
-                            value={
-                              isNaN(inputs.lossAmount) ? "" : inputs.lossAmount
-                            }
-                            onChange={(e) =>
-                              handleNumberChange("lossAmount", e.target.value)
-                            }
-                          />
-                          <Select
-                            value={inputs.lossAmountUnit}
-                            onValueChange={(value) =>
-                              onInputChange("lossAmountUnit", value)
-                            }
-                          >
-                            <SelectTrigger className="w-[100px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="raw">無單位</SelectItem>
-                              <SelectItem value="M">百萬 M</SelectItem>
-                              <SelectItem value="B">十億 B</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="tvl-before-incident">事發前 TVL</Label>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            id="tvl-before-incident"
-                            type="number"
-                            min="0"
-                            placeholder="TVL"
-                            value={
-                              isNaN(inputs.tvlBeforeIncident)
-                                ? ""
-                                : inputs.tvlBeforeIncident
-                            }
-                            onChange={(e) =>
-                              handleNumberChange(
-                                "tvlBeforeIncident",
-                                e.target.value
-                              )
-                            }
-                          />
-                          <Select
-                            value={inputs.tvlBeforeIncidentUnit}
-                            onValueChange={(value) =>
-                              onInputChange("tvlBeforeIncidentUnit", value)
-                            }
-                          >
-                            <SelectTrigger className="w-[100px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="raw">無單位</SelectItem>
-                              <SelectItem value="M">百萬 M</SelectItem>
-                              <SelectItem value="B">十億 B</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="space-y-1">
-                        <Label htmlFor="incident-months-ago">
-                          事件發生時間
-                        </Label>
-                        <Select
-                          value={inputs.incidentMonthsAgo}
-                          onValueChange={(value) =>
-                            onInputChange("incidentMonthsAgo", value)
-                          }
-                        >
-                          <SelectTrigger id="incident-months-ago">
-                            <SelectValue placeholder="選擇時間..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">過去 12 個月內</SelectItem>
-                            <SelectItem value="12">過去 12-24 個月</SelectItem>
-                            <SelectItem value="24">過去 24-36 個月</SelectItem>
-                            <SelectItem value="36">36 個月以上</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label>TVL 損失比例 (估算)</Label>
-                        <Input
-                          value={lossPercentage}
-                          readOnly
-                          disabled
-                          className="font-mono"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            <Separator />
-
             {/* --- Bug Bounty (Weight: 10%) --- */}
             <div className="space-y-3">
-              <h3 className="font-semibold">5. 漏洞賞金計畫 (權重: 10%)</h3>
+              <h3 className="font-semibold">4. 漏洞賞金計畫 (權重: 15%)</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>最高賞金金額</Label>

@@ -22,7 +22,6 @@ interface ScoreResults {
   runtimeScore: number;
   tvlScore: number;
   auditScore: number;
-  incidentScore: number;
   bountyScore: number;
   totalScore: number;
   riskLevel: RiskLevel | null; // Use the imported type
@@ -38,13 +37,15 @@ const getBadgeVariant = (
 ): "default" | "destructive" | "secondary" | "outline" => {
   switch (riskLevel) {
     case "穩健":
-    case "低風險":
       return "default"; // Greenish (default)
+    case "低風險":
+      // Use 'default' or maybe a slightly different shade if desired
+      return "default";
     case "中等風險":
       return "secondary"; // Yellowish (secondary)
     case "較高風險":
     case "高風險":
-    case "極高風險":
+      // REMOVE: case "極高風險":
       return "destructive"; // Red (destructive)
     default:
       return "outline";
@@ -53,11 +54,10 @@ const getBadgeVariant = (
 
 function ResultsDisplay({ results }: ResultsDisplayProps) {
   const scoreItems = [
-    { name: "運行時間", score: results.runtimeScore, weight: "25%" },
-    { name: "TVL", score: results.tvlScore, weight: "25%" },
-    { name: "安全審計", score: results.auditScore, weight: "20%" },
-    { name: "安全事件", score: results.incidentScore, weight: "20%" },
-    { name: "漏洞賞金", score: results.bountyScore, weight: "10%" },
+    { name: "運行時間", score: results.runtimeScore, weight: "30%" },
+    { name: "TVL", score: results.tvlScore, weight: "30%" },
+    { name: "安全審計", score: results.auditScore, weight: "25%" },
+    { name: "漏洞賞金", score: results.bountyScore, weight: "15%" },
   ];
 
   return (
